@@ -26,43 +26,14 @@ export default $config({
 
         const api = new sst.aws.ApiGatewayV1("SSTDemoApi");
 
-
-        api.route("POST /v1/todos", {
-            handler: "functions/index.handler",
-            link: [database]
-        });
-
-        api.route("GET /v1/todos/{id}", {
-            handler: "functions/index.handler",
-            link: [database]
-        });
-
-        api.route("GET /v1/todos", {
-            handler: "functions/index.handler",
-            link: [database]
-        });
-
-        api.route("PUT /v1/todos/{id}", {
-            handler: "functions/index.handler",
-            link: [database]
-        });
-
-        api.route("DELETE /v1/todos/{id}", {
+        // TODO: Be careful that the stage may be inconsistent if the stack can not deployed properly
+        api.route("ANY /v1/{proxy+}", {
             handler: "functions/index.handler",
             link: [database]
         });
 
 
-        api.route("POST /v2/todos", {
-            runtime: "python3.9",
-            handler: "python_function/handler.lambda_handler",
-            link: [database],
-            environment: {
-                TABLE_NAME: database.name
-            }
-        });
-
-        api.route("GET /v2/todos", {
+        api.route("ANY /v2/{proxy+}", {
             runtime: "python3.9",
             handler: "python_function/handler.lambda_handler",
             link: [database],
