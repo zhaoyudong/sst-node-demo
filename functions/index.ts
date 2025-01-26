@@ -18,10 +18,21 @@ export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
     try {
+        // Extract the actual resource ID from the path
+        const pathParts = event.path.split('/');
+        const resourceId = pathParts[pathParts.length - 1] !== 'todos' ? pathParts[pathParts.length - 1] : undefined;
+
+        if (!event.path.startsWith('/v1/todos')) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ message: 'Not found' }),
+            };
+        }
+
         switch (event.httpMethod) {
             case 'GET':
-                if (event.pathParameters?.id) {
-                    return await getTodo(event.pathParameters.id);
+                if (resourceId) {
+                    return await getTodo(resourceId);
                 }
                 return await listTodos();
 
@@ -29,13 +40,22 @@ export const handler = async (
                 return await createTodo(JSON.parse(event.body || '{}'));
 
             case 'PUT':
-                return await updateTodo(
-                    event.pathParameters?.id || '',
-                    JSON.parse(event.body || '{}')
-                );
+                if (!resourceId) {
+                    return {
+                        statusCode: 400,
+                        body: JSON.stringify({ message: 'Missing ID' }),
+                    };
+                }
+                return await updateTodo(resourceId, JSON.parse(event.body || '{}'));
 
             case 'DELETE':
-                return await deleteTodo(event.pathParameters?.id || '');
+                if (!resourceId) {
+                    return {
+                        statusCode: 400,
+                        body: JSON.stringify({ message: 'Missing ID' }),
+                    };
+                }
+                return await deleteTodo(resourceId);
 
             default:
                 return {
